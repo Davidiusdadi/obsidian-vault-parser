@@ -1,4 +1,4 @@
-import glob from 'glob-promise';
+import glob from 'glob';
 import matter from 'gray-matter';
 import path from 'path';
 import fs from 'fs';
@@ -551,7 +551,7 @@ var readVault = /*#__PURE__*/function () {
         case 0:
           abs_vault_path = path.normalize(vault_path);
           _context3.next = 3;
-          return glob(abs_vault_path + "/**/*.{md," + non_md_extensions.join(',') + "}");
+          return glob.glob(abs_vault_path + "/**/*.{md," + non_md_extensions.join(',') + "}");
         case 3:
           files = _context3.sent;
           vault = emptyVault(abs_vault_path);

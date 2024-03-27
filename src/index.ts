@@ -1,4 +1,4 @@
-import glob from "glob-promise";
+import glob from "glob";
 import matter from "gray-matter";
 import { getFileName, parseWikiLinks, readFile } from "./files";
 import { VaultPage, ReadVaultOptions, Vault } from "./types";
@@ -111,7 +111,7 @@ export const readVault = async (
 ): Promise<Vault> => {
   const abs_vault_path = path.normalize( vault_path);
 
-  const files = await glob(`${abs_vault_path}/**/*.{md,${non_md_extensions.join(',')}}`);
+  const files = await glob.glob(`${abs_vault_path}/**/*.{md,${non_md_extensions.join(',')}}`);
 
   const vault = emptyVault(abs_vault_path);
   vault.config = await readVaultConfig(abs_vault_path);

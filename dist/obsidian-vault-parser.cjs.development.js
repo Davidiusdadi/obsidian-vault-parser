@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var glob = _interopDefault(require('glob-promise'));
+var glob = _interopDefault(require('glob'));
 var matter = _interopDefault(require('gray-matter'));
 var path = _interopDefault(require('path'));
 var fs = _interopDefault(require('fs'));
@@ -557,7 +557,7 @@ var readVault = /*#__PURE__*/function () {
         case 0:
           abs_vault_path = path.normalize(vault_path);
           _context3.next = 3;
-          return glob(abs_vault_path + "/**/*.{md," + non_md_extensions.join(',') + "}");
+          return glob.glob(abs_vault_path + "/**/*.{md," + non_md_extensions.join(',') + "}");
         case 3:
           files = _context3.sent;
           vault = emptyVault(abs_vault_path);
