@@ -1,8 +1,22 @@
 import path from "path";
 import fs, { Stats } from "fs";
 
-export const getFileName = (filepath: string): string =>
-  path.parse(filepath).name.toLowerCase();
+export const getFileName = (filepath: string) => {
+  const parsed = path.parse(filepath)
+
+  let name = parsed.name.toLowerCase()
+  let ext = parsed.ext.toLowerCase()
+
+  if(ext !== '.md') {
+    name = name + ext
+  }
+
+  return {
+    name,
+    ext
+  }
+}
+
 
 export const readFile = async (
   path: string,

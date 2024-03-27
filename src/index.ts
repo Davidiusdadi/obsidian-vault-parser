@@ -2,14 +2,19 @@ import glob from "glob-promise";
 import matter from "gray-matter";
 import { getFileName, parseWikiLinks, readFile } from "./files";
 import { VaultPage, ReadVaultOptions, Vault } from "./types";
+import fs from "fs"
+import path from "path"
 
 export * from "./types";
 
+const non_md_extensions = ['svg', 'png', 'jpeg','jpg' ,'gif'];
+const non_md_extension = new RegExp(`(${non_md_extensions.join('|')})$`);
+
 export const connectLinks = (vault: Vault) => {
   for (const file of Object.values(vault.files)) {
-    const links = parseWikiLinks(file.content).filter(
+    const links = file.content ? parseWikiLinks(file.content).filter(
       name => vault.files[name] != null,
-    );
+    ) : []
 
     file.links = links;
   }
@@ -40,22 +45,46 @@ export const removeUnpublished = (
   }
 };
 
-export const parseFile = async (path: string): Promise<VaultPage> => {
-  const { contents: rawContent, stats } = await readFile(path);
-  const name = getFileName(path);
-  const { data: frontMatter, content } = matter(rawContent);
+export const parseFile = async (abs_file_path: string, abs_vault_path: string): Promise<VaultPage> => {
 
-  return {
-    path,
-    name,
-    links: [],
-    backLinks: [],
-    tags: [],
-    frontMatter,
-    content,
-    createdAt: stats.birthtimeMs,
-    updatedAt: stats.mtimeMs,
-  };
+  const {name, ext} = getFileName(abs_file_path);
+
+  console.log('parsed', name, ext)
+
+  const vault_relative_path = path.relative(abs_vault_path, abs_file_path);
+
+  if(abs_file_path.toLowerCase().match(non_md_extension) !== null) {
+    console.log('parsed non-md', abs_file_path)
+    const stats = await fs.promises.stat(abs_file_path);
+    return {
+      path: vault_relative_path,
+      name,
+      ext,
+      links: [],
+      backLinks: [],
+      tags: [],
+      frontMatter: {},
+      content: null,
+      createdAt: stats.birthtimeMs,
+      updatedAt: stats.mtimeMs,
+    }
+  } else {
+    console.log('parsed md', abs_file_path)
+    const { contents: rawContent, stats } = await readFile(abs_file_path);
+    const { data: frontMatter, content } = matter(rawContent);
+    return {
+      path: vault_relative_path,
+      name,
+      ext,
+      links: [],
+      backLinks: [],
+      tags: [],
+      frontMatter,
+      content,
+      createdAt: stats.birthtimeMs,
+      updatedAt: stats.mtimeMs,
+    }
+  }
 };
 
 export const emptyVault = (path: string): Vault => ({
@@ -77,16 +106,18 @@ export const readVaultConfig = async (path: string): Promise<any> => {
 };
 
 export const readVault = async (
-  path: string,
-  options?: ReadVaultOptions,
+    vault_path: string,
+    options?: ReadVaultOptions,
 ): Promise<Vault> => {
-  const files = await glob(`${path}/**/*.md`);
+  const abs_vault_path = path.normalize( vault_path);
 
-  const vault = emptyVault(path);
-  vault.config = await readVaultConfig(path);
+  const files = await glob(`${abs_vault_path}/**/*.{md,${non_md_extensions.join(',')}}`);
+
+  const vault = emptyVault(abs_vault_path);
+  vault.config = await readVaultConfig(abs_vault_path);
 
   for (const filePath of files) {
-    const file = await parseFile(filePath);
+    const file = await parseFile(filePath, abs_vault_path);
     vault.files[file.name] = file;
   }
 
